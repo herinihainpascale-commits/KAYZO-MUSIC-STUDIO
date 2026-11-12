@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="mg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAYZO MUSIC STUDIO</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#101020;color:white;
+ font-family:Arial,sans-serif;text-align:center;
+}
+header{
+ background:linear-gradient(120deg,#7b2cff,#e500a4);
+ padding:28px 12px;
+}
+h1{font-size:27px;margin:5px}
+main{padding:18px}
+.box{
+ background:#202039;padding:18px;
+ border-radius:16px;margin:15px auto;
+ max-width:450px;
+}
+button{
+ background:#a72cff;color:white;
+ border:0;border-radius:10px;
+ padding:13px 20px;margin:6px;
+ font-size:15px;font-weight:bold;
+}
+button:disabled{opacity:.4}
+input{max-width:100%;margin:12px}
+audio{width:100%;margin-top:12px}
+.status{color:#ff75d5}
+footer{padding:25px;color:#aaa}
+</style>
+</head>
+<body>
+<header>
+<h1>🎧 KAYZO MUSIC STUDIO</h1>
+<p>Ton studio de musique personnel</p>
+</header>
+
+<main>
+<div class="box">
+<h2>🎵 Instrumental</h2>
+<p>Misafidiana instrumental ao amin'ny téléphone</p>
+<input type="file" id="beat" accept="audio/*">
+<audio id="music" controls></audio>
+</div>
+
+<div class="box">
+<h2>🎙️ Enregistrement vocal</h2>
+<button id="start">🔴 REC</button>
+<button id="stop" disabled>⏹ STOP</button>
+<p class="status" id="status">Prêt à enregistrer</p>
+<audio id="voice" controls></audio>
+<a id="download" hidden download="Kayzo-Voice.webm">
+<button>⬇️ Télécharger ma voix</button>
+</a>
+</div>
+
+<div class="box">
+<h2>🎚️ Volume</h2>
+<input type="range" id="volume"
+min="0" max="100" value="80">
+<p>Volume instrumental</p>
+</div>
+</main>
+
+<footer>
+KAYZO MUSIC STUDIO © 2026
+<br>Made for music lovers ❤️
+</footer>
+
+<script>
+const beat=document.getElementById("beat");
+const music=document.getElementById("music");
+const voice=document.getElementById("voice");
+const start=document.getElementById("start");
+const stop=document.getElementById("stop");
+const status=document.getElementById("status");
+const download=document.getElementById("download");
+let recorder,parts=[];
+
+beat.onchange=()=>{
+ if(beat.files[0]){
+ music.src=URL.createObjectURL(beat.files[0]);
+ }
+};
+
+document.getElementById("volume").oninput=e=>{
+ music.volume=e.target.value/100;
+};
+
+start.onclick=async()=>{
+ try{
+ const stream=await navigator.mediaDevices
+ .getUserMedia({audio:true});
+ parts=[];
+ recorder=new MediaRecorder(stream);
+ recorder.ondataavailable=e=>{
+ if(e.data.size>0)parts.push(e.data);
+ };
+ recorder.onstop=()=>{
+ const blob=new Blob(parts,{type:"audio/webm"});
+ const url=URL.createObjectURL(blob);
+ voice.src=url;
+ download.href=url;
+ download.hidden=false;
+ status.textContent="Enregistrement terminé ❤️";
+ stream.getTracks().forEach(t=>t.stop());
+ };
+ recorder.start();
+ start.disabled=true;
+ stop.disabled=false;
+ status.textContent="🔴 Enregistrement en cours...";
+ }catch(e){
+ status.textContent="Autorisez le microphone dans le navigateur.";
+ }
+};
+
+stop.onclick=()=>{
+ if(recorder && recorder.state==="recording"){
+ recorder.stop();
+ start.disabled=false;
+ stop.disabled=true;
+ }
+};
+</script>
+</body>
+</html>
